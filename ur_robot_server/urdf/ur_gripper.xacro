@@ -31,7 +31,7 @@
   -->
   <xacro:include filename="$(find ur_robot_server)/urdf/ur_macro.xacro"/>
   <!-- include robotiq_85_gripper.urdf.xacro -->
-  <xacro:include filename="$(find robotiq_description)/urdf/robotiq_85_gripper.urdf.xacro"/>
+  <xacro:include filename="$(find ur_robot_server)/ur_robot_server/urdf/robotiq_85_gripper.xacro"/>
 
   <!--Declare arguments -->
   <xacro:arg name="joint_limit_params" default=""/>
@@ -82,14 +82,14 @@
   />
   
   <!-- include robot gripper -->
-  <xacro:robotiq_85_gripper prefix="" parent="tool0">
-    <origin xyz="0 0 0" rpy="0 -1.5707963 0"/>
+  <xacro:robotiq_85_gripper prefix="" parent="ee_link">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
   </xacro:robotiq_85_gripper>
   
   
   
   <!--
-    Attach the Gazebo model to Gazebo's frame.
+    Attach the Gazebo model to Gazebo's world frame.
 
     Note: if you're looking to integrate a UR into a larger scene and need
     to add EEFs or other parts, DO NOT change this file or the 'world' link

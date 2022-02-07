@@ -4,6 +4,7 @@ import rospy
 from concurrent import futures
 from ur_robot_server.ros_bridge import UrRosBridge
 from robo_gym_server_modules.robot_server.grpc_msgs.python import robot_server_pb2, robot_server_pb2_grpc
+import copy
 
 class RobotServerServicer(robot_server_pb2_grpc.RobotServerServicer):
     def __init__(self, real_robot, ur_model):
@@ -25,16 +26,25 @@ class RobotServerServicer(robot_server_pb2_grpc.RobotServerServicer):
             return robot_server_pb2.Success(success=0)
 
     def SendAction(self, request, context):
+        action = copy.deepcopy(request.action)
+        action_grip = request.action[1]
+        del action[1]
         try:
-            executed_action = self.rosbridge.send_action(request.action)
+            executed_action = self.rosbridge.publish_env_arm_cmd(request.action)
+            executed_action_grip = self.rosbridge.publish_env_grip_cmd(action_grip)
             return robot_server_pb2.Success(success=1)
         except:
             rospy.logerr('Failed to send action', exc_info=True)
             return robot_server_pb2.Success(success=0)
 
     def SendActionGetState(self, request, context):
+        action = copy.deepcopy(request.action)
+        action_grip = request.action[1]
+        del action[1]
+
         try:
-            executed_action = self.rosbridge.send_action(request.action)
+            executed_action = self.rosbridge.publish_env_arm_cmd(request.action)
+            executed_action_grip = self.rosbridge.publish_env_grip_cmd([action_grip])
             return self.rosbridge.get_state()
         except:
             rospy.logerr('Failed to send action and get state', exc_info=True)

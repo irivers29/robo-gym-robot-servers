@@ -5,13 +5,14 @@
   <arg name="gui" default="false" />
   <arg name="rviz_gui" default="true" />
   <arg name="gazebo_gui" default="false" />
-  <arg name="world_name" default="empty.world"/>
+  <arg name="world_name" default="shelf.world"/>
   <arg name="max_velocity_scale_factor" default="1.0" doc="Scale factor multplied by maximum joint velocity value"/>
   <arg name="server_port" default ="50051"/>
   <arg name="action_cycle_rate" default="25" doc="Rate at which new commands are published to the robot controller"/>
   <arg name="reference_frame" default="base"  doc="Reference frame with respect to which target and ee pose are given"/>
   <arg name="target_mode" default="only_robot"  doc="DEPRECATED"/>
   <arg name="rs_mode"  default="false" doc="Defines the working mode of the Robot Server, this influences the RS state content"/>
+  <arg name="gripper" default="false" doc="Defines if the gripper should be taken into account for the simulation"/>
   <arg name="use_voxel_occupancy" default="false" doc="use voxel occupancy in state"/>
 
   <!-- Scene Objects -->
@@ -22,6 +23,14 @@
   <arg name="object_0_frame" default="" doc="TF Frame name of target"/>
   <arg name="object_1_model_name" default="" doc="Gazebo model name of object 1"/>
   <arg name="object_1_frame" default="" doc="TF Frame name of object 1"/>
+  <arg name="object_2_model_name" default="" doc="Gazebo model name of object 1"/>
+  <arg name="object_2_frame" default="" doc="TF Frame name of object 1"/>
+  <arg name="object_3_model_name" default="" doc="Gazebo model name of object 1"/>
+  <arg name="object_3_frame" default="" doc="TF Frame name of object 1"/>
+  <arg name="object_4_model_name" default="" doc="Gazebo model name of object 1"/>
+  <arg name="object_4_frame" default="" doc="TF Frame name of object 1"/>
+  <arg name="object_5_model_name" default="" doc="Gazebo model name of object 1"/>
+  <arg name="object_5_frame" default="" doc="TF Frame name of object 1"/>
 
   <!-- RViz Configuration -->
   <arg name="rviz_config_path" default = "$(find ur_robot_server)/rviz" />
@@ -39,7 +48,7 @@
     <arg name="yaw" default="0.0" doc="base_link coordinate with respect to the world frame"/>
 
     <!-- Camera 1 activate and position -->
-    <arg name="camera1_gazebo" default="False" doc="use camera1 gazebo simulated sensor"/>
+    <arg name="camera1_gazebo" default="false" doc="use camera1 gazebo simulated sensor"/>
     <arg name="camera1_link_x" default="0.0" doc="camera1_link coordinate with respect to the world frame"/>
     <arg name="camera1_link_y" default="0.0" doc="camera1_link coordinate with respect to the world frame"/>
     <arg name="camera1_link_z" default="0.1" doc="camera1_link coordinate with respect to the world frame"/>
@@ -56,7 +65,7 @@
 
     <!-- Controller configuration -->
     <arg name="controller_config_file" default="$(find ur_robot_server)/config/$(arg ur_model)_controllers.yaml" doc="Config file used for defining the ROS-Control controllers."/>
-    <arg name="controllers" default="joint_state_controller eff_joint_traj_controller" doc="Controllers that are activated by default."/>
+    <arg name="controllers" default="joint_state_controller eff_joint_traj_controller gripper_controller" doc="Controllers that are activated by default."/>
     <arg name="stopped_controllers" default="joint_group_eff_controller" doc="Controllers that are initally loaded, but not started."/>
 
     <!-- Load urdf on the parameter server -->
@@ -88,7 +97,7 @@
     </node>
 
     <!-- Start the 'driver' (ie: Gazebo in this case) -->
-    <include file="$(dirname)/inc/ur_control.launch.xml">
+    <include file="$(dirname)/inc/ur_control_gripper.launch.xml">
       <arg name="controller_config_file" value="$(arg controller_config_file)"/>
       <arg name="controllers" value="$(arg controllers)"/>
       <arg name="gui" value="$(eval arg('gui') and arg('gazebo_gui'))"/>
@@ -122,6 +131,14 @@
   <param name="object_0_frame" value="$(arg object_0_frame)"></param>
   <param name="object_1_model_name" value="$(arg object_1_model_name)"></param>
   <param name="object_1_frame" value="$(arg object_1_frame)"></param>
+  <param name="object_2_model_name" value="$(arg object_2_model_name)"></param>
+  <param name="object_2_frame" value="$(arg object_2_frame)"></param>
+  <param name="object_3_model_name" value="$(arg object_3_model_name)"></param>
+  <param name="object_3_frame" value="$(arg object_3_frame)"></param>
+  <param name="object_4_model_name" value="$(arg object_4_model_name)"></param>
+  <param name="object_4_frame" value="$(arg object_4_frame)"></param>
+  <param name="object_5_model_name" value="$(arg object_5_model_name)"></param>
+  <param name="object_5_frame" value="$(arg object_5_frame)"></param>
 
   <!--Launch gRPC server -->
   <node name="robot_server" pkg="ur_robot_server" type="robot_server.py" respawn="false" output="screen" >
@@ -133,6 +150,7 @@
     <param name="reference_frame" value="$(arg reference_frame)"></param>
     <param name="target_mode" value="$(arg target_mode)"></param>
     <param name="rs_mode" value="$(arg rs_mode)"></param>
+    <param name="gripper" value="$(arg gripper)"></param>
     <param name="use_voxel_occupancy" value="$(arg use_voxel_occupancy)"></param>
   </node>
 
