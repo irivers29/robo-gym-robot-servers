@@ -48,13 +48,13 @@
     <arg name="yaw" default="0.0" doc="base_link coordinate with respect to the world frame"/>
 
     <!-- Camera 1 activate and position -->
-    <arg name="camera1_gazebo" default="false" doc="use camera1 gazebo simulated sensor"/>
-    <arg name="camera1_link_x" default="0.0" doc="camera1_link coordinate with respect to the world frame"/>
+    <arg name="camera1_gazebo" default="true" doc="use camera1 gazebo simulated sensor"/>
+    <arg name="camera1_link_x" default="-1.0" doc="camera1_link coordinate with respect to the world frame"/>
     <arg name="camera1_link_y" default="0.0" doc="camera1_link coordinate with respect to the world frame"/>
-    <arg name="camera1_link_z" default="0.1" doc="camera1_link coordinate with respect to the world frame"/>
+    <arg name="camera1_link_z" default="1.2" doc="camera1_link coordinate with respect to the world frame"/>
     <arg name="camera1_link_roll" default="0.0" doc="camera1_link coordinate with respect to the world frame"/>
-    <arg name="camera1_link_pitch" default="0.0" doc="camera1_link coordinate with respect to the world frame"/>
-    <arg name="camera1_link_yaw" default="0.0" doc="camera1_link coordinate with respect to the world frame"/>
+    <arg name="camera1_link_pitch" default="0.5236" doc="camera1_link coordinate with respect to the world frame"/>
+    <arg name="camera1_link_yaw" default="1.0472" doc="camera1_link coordinate with respect to the world frame"/>
 
     <!--Robot description and related parameter files -->
     <arg name="robot_description_file" default="$(dirname)/inc/load_$(arg ur_model).launch.xml" doc="Launch file which populates the 'robot_description' parameter."/>
@@ -156,5 +156,7 @@
 
   <!--Launch objects controller -->
   <node if="$(arg objects_controller)" name="objects_controller" pkg="simulation_objects" type="objects_controller.py" respawn="false" output="screen" ></node>
+
+
 
 </launch>

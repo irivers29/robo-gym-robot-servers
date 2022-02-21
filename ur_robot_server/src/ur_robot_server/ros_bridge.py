@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 
 import copy
+import ctypes
 import random
+import struct
 from threading import Event
 
 import cv2
+import matplotlib.pyplot as plt
 import numpy as np
 import rospy
 import tf2_ros
@@ -14,7 +17,8 @@ from gazebo_msgs.srv import SetModelState
 from geometry_msgs.msg import TransformStamped
 from robo_gym_server_modules.robot_server.grpc_msgs.python import \
     robot_server_pb2
-from sensor_msgs.msg import Image, JointState
+from sensor_msgs.msg import Image, JointState, PointCloud2
+import sensor_msgs.point_cloud2 as pc2
 from std_msgs.msg import Bool, Header, Int32MultiArray
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 
@@ -29,10 +33,13 @@ class UrRosBridge:
         self.get_state_event = Event()
         self.get_state_event.set()
 
+        self.bridge = CvBridge()
+
         self.real_robot = real_robot
         self.ur_model = ur_model
 
         self.image_bytes = None
+        self.depth_bytes = None
 
         # Joint States
         self.joint_names = ['elbow_joint', 'robotiq_85_left_knuckle_joint', 'shoulder_lift_joint', 'shoulder_pan_joint', \
@@ -46,8 +53,9 @@ class UrRosBridge:
         rospy.Subscriber("joint_states", JointState, self._on_joint_states)
         
         # Image
-        rospy.Subscriber("camera/image/image_raw", Image, self._on_camera_state)
-        #rospy.Subscriber("camera/image/image_raw/compressedDepth", CompressedImage, self._on_depth_state)
+        rospy.Subscriber("/camera/color/image_raw", Image, self._on_camera_state)
+        #rospy.Subscriber("camera_depth/points", PointCloud2, self._on_depth_state)
+        rospy.Subscriber("/camera/depth/image_raw", Image, self._on_depth_state)
 
         # Robot control
         self.arm_cmd_pub = rospy.Publisher('env_arm_command', JointTrajectory, queue_size=1) # joint_trajectory_command_handler publisher
@@ -163,6 +171,11 @@ class UrRosBridge:
             else:
                 image = None
 
+            if self.depth_bytes is not None:
+                depth_image = self.depth_bytes
+            else:
+                depth_image = None
+
         elif self.rs_mode == '1object':
             # Object 0 Pose 
 
@@ -194,6 +207,11 @@ class UrRosBridge:
                 image = self.image_bytes
             else:
                 image = None
+
+            if self.depth_bytes is not None:
+                depth_image = self.depth_bytes
+            else:
+                depth_image = None
 
         elif self.rs_mode == '1moving2points':
             # Object 0 Pose 
@@ -231,7 +249,7 @@ class UrRosBridge:
                     
         self.get_state_event.set()
         # Create and fill State message
-        msg = robot_server_pb2.State(state=state, state_dict=state_dict, success= True, image = image)
+        msg = robot_server_pb2.State(state=state, state_dict=state_dict, success= True, image = image, depth = depth_image)
         return msg
 
     def set_state(self, state_msg):
@@ -378,21 +396,20 @@ class UrRosBridge:
 
     def _on_camera_state(self, msg):
         "convert image to cv image"
-        bridge = CvBridge()
+        #bridge = CvBridge()
+        #print(type(msg))
 
-        raw_cv_image = bridge.imgmsg_to_cv2(msg)
+        raw_cv_image = self.bridge.imgmsg_to_cv2(msg)
         raw_np_image = np.asarray(raw_cv_image)
         self.image_bytes = raw_np_image.tobytes()
 
         
+    
     def _on_depth_state(self, msg):
-        "convert image to cv image"
-        #bridge = CvBridge()
+        raw_cv_idepth = self.bridge.imgmsg_to_cv2(msg)
+        self.depth_bytes = msg.data
 
-        #raw_cv_image = bridge.imgmsg_to_cv2(msg)
-        np_array = np.fromstring(msg.data, np.uint8)
-        print(np_array.shape)
-        self.image_np = cv2.imdecode(np_array, cv2.LOAD_IMAGE_UNCHANGED)
+
 
     def _on_shoulder_collision(self, data):
         if data.states == []:

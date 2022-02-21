@@ -102,6 +102,26 @@
     <child link="base_link"/>
     <origin xyz="$(arg x) $(arg y) $(arg z)" rpy="$(arg roll) $(arg pitch) $(arg yaw)" />
   </joint>
+  
+  
+  
+  
+  
+  <xacro:include filename="$(find realsense2_description)/urdf/_d435.urdf.xacro" />
+  
+  <link name="camera_base_link" />
+  <xacro:sensor_d435 name="camera" topics_ns="camera" parent="camera_base_link" publish_pointcloud="true">
+    <origin xyz="0 0 0" rpy="0 0 0" />
+  </xacro:sensor_d435>  
+
+  <joint name="world_camera_joint" type="fixed">
+    <parent link="world"/>
+    <child link="camera_base_link"/>
+    <origin xyz="0 0 0" rpy="$(arg roll) $(arg pitch) $(arg yaw)" />
+  </joint>
+
+
+
 
   <!-- simulated rgbd camera include -->
   <xacro:if value="$(arg camera1_gazebo)">

@@ -19,6 +19,7 @@ class RobotServerServicer(robot_server_pb2_grpc.RobotServerServicer):
 
     def SetState(self, request, context):
         try:
+            #print(request)
             self.rosbridge.set_state(state_msg=request)
             return robot_server_pb2.Success(success=1)
         except:
