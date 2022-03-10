@@ -10,6 +10,7 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 import rospy
+import sensor_msgs.point_cloud2 as pc2
 import tf2_ros
 from cv_bridge import CvBridge
 from gazebo_msgs.msg import ContactsState, ModelState
@@ -18,8 +19,8 @@ from geometry_msgs.msg import TransformStamped
 from robo_gym_server_modules.robot_server.grpc_msgs.python import \
     robot_server_pb2
 from sensor_msgs.msg import Image, JointState, PointCloud2
-import sensor_msgs.point_cloud2 as pc2
 from std_msgs.msg import Bool, Header, Int32MultiArray
+
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 
 
@@ -244,6 +245,48 @@ class UrRosBridge:
             state += forearm_to_ref_trans_list
             state_dict.update(self._get_transform_dict(forearm_to_ref_trans, 'forearm_to_ref'))
 
+        elif self.rs_mode == 'DQN':
+                        # Object 0 Pose 
+
+            transform_available = self.tf2_buffer.can_transform(self.reference_frame, self.objects_frame[0], rospy.Time(), rospy.Duration(4.0))
+            object_0_trans = self.tf2_buffer.lookup_transform(self.reference_frame, self.objects_frame[0], rospy.Time(0))
+            object_0_trans_list = self._transform_to_list(object_0_trans)
+            state += object_0_trans_list
+            state_dict.update(self._get_transform_dict(object_0_trans, 'object_0_to_ref'))
+
+            # Joint Positions and Joint Velocities
+            joint_position = copy.deepcopy(self.joint_position)
+            joint_velocity = copy.deepcopy(self.joint_velocity)
+            state += self._get_joint_ordered_value_list(joint_position)
+            state += self._get_joint_ordered_value_list(joint_velocity)
+            state_dict.update(self._get_joint_states_dict(joint_position, joint_velocity))
+
+            # ee to ref transform
+            ee_to_ref_trans = self.tf2_buffer.lookup_transform(self.reference_frame, self.ee_frame, rospy.Time(0))
+            ee_to_ref_trans_list = self._transform_to_list(ee_to_ref_trans)
+            state += ee_to_ref_trans_list
+            state_dict.update(self._get_transform_dict(ee_to_ref_trans, 'ee_to_ref'))
+        
+            # tip to ref transform
+            tip_to_ref_trans = self.tf2_buffer.lookup_transform('base_link', 'tool0', rospy.Time(0))
+            tip_to_ref_trans_list = self._transform_to_list(tip_to_ref_trans)
+            state += tip_to_ref_trans_list
+            state_dict.update(self._get_transform_dict(tip_to_ref_trans,'tip_to_ref'))
+        
+            # Collision sensors
+            ur_collision = any(self.collision_sensors.values())
+            state += [ur_collision]
+            state_dict['in_collision'] = float(ur_collision)
+
+            if self.image_bytes is not None:
+                image = self.image_bytes
+            else:
+                image = None
+
+            if self.depth_bytes is not None:
+                depth_image = self.depth_bytes
+            else:
+                depth_image = None
         else: 
             raise ValueError
                     
@@ -316,7 +359,8 @@ class UrRosBridge:
     def set_joint_position(self, goal_joint_position_arm, goal_joint_position_grip):
         """Set robot joint positions to a desired value
         """        
-
+        print(goal_joint_position_arm)
+        print(goal_joint_position_grip)
         position_reached = False
         while not position_reached:
 
@@ -327,6 +371,7 @@ class UrRosBridge:
         
             goal_joint_position = copy.deepcopy(goal_joint_position_arm)
             goal_joint_position.insert(1,goal_joint_position_grip[0])
+            print(goal_joint_position)
 
             position_reached = np.isclose(goal_joint_position, self._get_joint_ordered_value_list(joint_position), atol=0.03).all()
             self.get_state_event.set()

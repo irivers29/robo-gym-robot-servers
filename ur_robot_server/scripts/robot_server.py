@@ -44,8 +44,9 @@ class RobotServerServicer(robot_server_pb2_grpc.RobotServerServicer):
         del action[1]
 
         try:
-            executed_action = self.rosbridge.publish_env_arm_cmd(request.action)
-            executed_action_grip = self.rosbridge.publish_env_grip_cmd([action_grip])
+            #executed_action = self.rosbridge.publish_env_arm_cmd(request.action)
+            #executed_action_grip = self.rosbridge.publish_env_grip_cmd([action_grip])
+            self.rosbridge.set_joint_position(action, [action_grip])
             return self.rosbridge.get_state()
         except:
             rospy.logerr('Failed to send action and get state', exc_info=True)

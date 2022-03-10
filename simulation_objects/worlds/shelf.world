@@ -65,6 +65,13 @@
       </include>
     <!--/model-->
     
+    <light type="directional" name="my_light">
+	<origin pose="0 2 3 0 0.7 0"/>
+	<!--diffuse rgba=".9 .9 .9 1"/>
+	<specular rgba=".1 .1 .1 1"/>
+	<attenuation range="20"/>
+	<direction xyz="0 0 -1"/-->
+    </light>
     
     <physics type = "ode">
         <max_step_size>0.001</max_step_size> 
