@@ -612,7 +612,7 @@ class UrRosBridge:
             if i < 3:
                 x_value = round(random.uniform(x_min + range_x*i + 0.02, x_min + range_x*(i+1) - 0.02), 2)
                 y_value = round(random.uniform(y_min, y_max), 2)
-                z_value = z1
+                z_value = z2
                 position.append(x_value)
                 position.append(y_value)
                 position.append(z_value)
@@ -620,7 +620,7 @@ class UrRosBridge:
             else:
                 x_value = round(random.uniform(x_min + range_x*(i-3), x_min + range_x*(i-2)), 2)
                 y_value = round(random.uniform(y_min, y_max), 2)
-                z_value = z2
+                z_value = z1
                 position.append(x_value)
                 position.append(y_value)
                 position.append(z_value)
