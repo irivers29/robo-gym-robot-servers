@@ -356,12 +356,13 @@ class UrRosBridge:
 
         return 1
 
-    def set_joint_position(self, goal_joint_position_arm, goal_joint_position_grip):
+    def set_joint_position(self, goal_joint_position_arm, goal_joint_position_grip, step=False):
         """Set robot joint positions to a desired value
         """        
         print(goal_joint_position_arm)
         print(goal_joint_position_grip)
         position_reached = False
+        i = 0
         while not position_reached:
 
             self.publish_env_arm_cmd(goal_joint_position_arm)
@@ -372,9 +373,15 @@ class UrRosBridge:
             goal_joint_position = copy.deepcopy(goal_joint_position_arm)
             goal_joint_position.insert(1,goal_joint_position_grip[0])
             print(goal_joint_position)
-
-            position_reached = np.isclose(goal_joint_position, self._get_joint_ordered_value_list(joint_position), atol=0.03).all()
+            
+            if not step:
+                position_reached = np.isclose(goal_joint_position, self._get_joint_ordered_value_list(joint_position), atol=0.03).all()
+            else:
+                position_reached = np.isclose(goal_joint_position, self._get_joint_ordered_value_list(joint_position), atol=0.005).all()
             self.get_state_event.set()
+            i += 1
+            if step and (i>10):
+                position_reached = True
 
     def publish_env_arm_cmd(self, position_cmd_arm):
         """Publish environment JointTrajectory msg.
@@ -612,7 +619,7 @@ class UrRosBridge:
             if i < 3:
                 x_value = round(random.uniform(x_min + range_x*i + 0.02, x_min + range_x*(i+1) - 0.02), 2)
                 y_value = round(random.uniform(y_min, y_max), 2)
-                z_value = z2
+                z_value = z1
                 position.append(x_value)
                 position.append(y_value)
                 position.append(z_value)
@@ -620,7 +627,7 @@ class UrRosBridge:
             else:
                 x_value = round(random.uniform(x_min + range_x*(i-3), x_min + range_x*(i-2)), 2)
                 y_value = round(random.uniform(y_min, y_max), 2)
-                z_value = z1
+                z_value = z2
                 position.append(x_value)
                 position.append(y_value)
                 position.append(z_value)
